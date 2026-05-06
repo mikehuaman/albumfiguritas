@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Mi Álbum Mundial 2026</title>
+  <title>ALBUM 2026</title>
 
   <!-- Icono para iPhone / pantalla de inicio -->
   <link rel="apple-touch-icon" href="logomundial.png" />
   <link rel="icon" type="image/png" href="logomundial.png" />
-  <meta name="apple-mobile-web-app-title" content="Álbum 2026" />
-
+  <meta name="apple-mobile-web-app-title" content="ALBUM 2026" />
   <!-- Apariencia de la app web -->
   <meta name="theme-color" content="#0b0f19" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -59,7 +58,7 @@
     .toolbar {
       margin-top: 14px; display: grid; grid-template-columns: 1fr; gap: 8px;
     }
-    @media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto auto auto; align-items: center; } }
+    @media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto; align-items: center; } }
     .search, select {
       width: 100%; border: 1px solid var(--line); background: rgba(255,255,255,.06);
       color: var(--text); border-radius: 999px; padding: 11px 14px; outline: none;
@@ -76,6 +75,38 @@
     .btn:active { transform: scale(.98); }
     .btn.primary { background: var(--yellow); color:#111827; border-color: transparent; font-weight: 800; }
     .btn.danger { color: #fecaca; border-color: rgba(248,113,113,.35); }
+    .view-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    
+    .view-actions select {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .circle-btn {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    @media (min-width: 760px) {
+      .view-actions {
+        width: auto;
+      }
+    
+      .view-actions select {
+        min-width: 170px;
+      }
+    }
     .stats {
       display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin: 14px 0;
     }
@@ -163,22 +194,24 @@
       <div class="hero-inner">
         <div class="topline">
           <div>
-            <h1>Mi Álbum Mundial 2026</h1>
-            <p class="subtitle">Registro local de figuritas por código: faltantes, tengo y repetidas. Se guarda en este navegador.</p>
+            <h1>ALBUM 2026</h1>
           </div>
-          <button class="btn primary" id="copyAllBtn">Copiar resumen</button>
+          <button class="btn primary" id="copyAllBtn">RESUMEN</button>
         </div>
         <div class="toolbar">
           <input id="codeInput" class="search" placeholder="Escribe el código de la carta… Ej.: MEX2" autocomplete="off" autocapitalize="characters" />
           <button class="btn primary" id="registerBtn">Registrar carta</button>
-          <select id="view">
-            <option value="all">Ver todo</option>
-            <option value="missing">Solo faltantes</option>
-            <option value="owned">Solo tengo</option>
-            <option value="duplicates">Solo repetidas</option>
-          </select>
-          <button class="btn" id="openAll">Abrir secciones</button>
-          <button class="btn" id="closeAll">Cerrar secciones</button>
+          <div class="view-actions">
+            <select id="view">
+              <option value="all">Ver todo</option>
+              <option value="missing">Solo faltantes</option>
+              <option value="owned">Solo tengo</option>
+              <option value="duplicates">Solo repetidas</option>
+            </select>
+          
+            <button class="btn circle-btn" id="openAll" aria-label="Abrir secciones">⌄</button>
+            <button class="btn circle-btn" id="closeAll" aria-label="Cerrar secciones">⌃</button>
+          </div>
         </div>
       </div>
     </header>
@@ -234,7 +267,69 @@
     let quantities = loadQuantities();
     let openSections = loadOpenSections();
     let view = "all";
-
+    const SECTION_FLAGS = {
+      "00": "✨",
+      "FWC": "🏆",
+      "MEX": "🇲🇽",
+      "RSA": "🇿🇦",
+      "KOR": "🇰🇷",
+      "CZE": "🇨🇿",
+      "CAN": "🇨🇦",
+      "BIH": "🇧🇦",
+      "QAT": "🇶🇦",
+      "SUI": "🇨🇭",
+      "BRA": "🇧🇷",
+      "MAR": "🇲🇦",
+      "HAI": "🇭🇹",
+      "SCO": "🏴",
+      "USA": "🇺🇸",
+      "PAR": "🇵🇾",
+      "AUS": "🇦🇺",
+      "TUR": "🇹🇷",
+      "GER": "🇩🇪",
+      "CUW": "🇨🇼",
+      "CIV": "🇨🇮",
+      "ECU": "🇪🇨",
+      "NED": "🇳🇱",
+      "JPN": "🇯🇵",
+      "SWE": "🇸🇪",
+      "TUN": "🇹🇳",
+      "BEL": "🇧🇪",
+      "EGY": "🇪🇬",
+      "IRN": "🇮🇷",
+      "NZL": "🇳🇿",
+      "ESP": "🇪🇸",
+      "CPV": "🇨🇻",
+      "KSA": "🇸🇦",
+      "URU": "🇺🇾",
+      "FRA": "🇫🇷",
+      "SEN": "🇸🇳",
+      "IRQ": "🇮🇶",
+      "NOR": "🇳🇴",
+      "ARG": "🇦🇷",
+      "ALG": "🇩🇿",
+      "AUT": "🇦🇹",
+      "JOR": "🇯🇴",
+      "POR": "🇵🇹",
+      "COD": "🇨🇩",
+      "UZB": "🇺🇿",
+      "COL": "🇨🇴",
+      "ENG": "🏴",
+      "CRO": "🇭🇷",
+      "GHA": "🇬🇭",
+      "PAN": "🇵🇦"
+    };
+    
+    function sectionTitleWithFlag(sec, name) {
+      const flag = SECTION_FLAGS[sec] || "🏳️";
+      return `${flag} ${name}`;
+    }
+    
+    function smallVibration() {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(12);
+      }
+    }
     function loadQuantities() {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
     }
@@ -312,7 +407,7 @@
 
         const summary = document.createElement("summary");
         summary.innerHTML = `
-          <div class="sec-title"><span class="sec-code">${sec}</span><span class="sec-name">${items[0].sectionName}</span></div>
+          <div class="sec-title"><span class="sec-code">${sec}</span><span class="sec-name">${sectionTitleWithFlag(sec, items[0].sectionName)}</span></div>
           <span class="pill">${ownedCount} / ${items.length}</span>
         `;
         details.appendChild(summary);
@@ -339,20 +434,23 @@
           <button class="mini plus" aria-label="Agregar">+</button>
         </div>
       `;
-      el.querySelector(".plus").addEventListener("click", (e) => {
-        e.stopPropagation();
-        quantities[st.code] = q + 1;
-        saveQuantities();
-        render();
-      });
-      el.querySelector(".minus").addEventListener("click", (e) => {
-        e.stopPropagation();
-        quantities[st.code] = Math.max(0, q - 1);
-        if (quantities[st.code] === 0) delete quantities[st.code];
-        saveQuantities();
-        render();
-      });
-      return el;
+    el.querySelector(".plus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      smallVibration();
+      quantities[st.code] = q + 1;
+      saveQuantities();
+      render();
+    });
+    
+    el.querySelector(".minus").addEventListener("click", (e) => {
+      e.stopPropagation();
+      quantities[st.code] = Math.max(0, q - 1);
+      if (quantities[st.code] === 0) delete quantities[st.code];
+      saveQuantities();
+      render();
+    });
+    
+    return el;
     }
 
     function updateStats() {
@@ -405,11 +503,12 @@
         input.select();
         return;
       }
-      quantities[st.code] = qty(st.code) + 1;
-      saveQuantities();
-      input.value = "";
-      render();
-      showToast(`${st.code} registrada`);
+    smallVibration();
+    quantities[st.code] = qty(st.code) + 1;
+    saveQuantities();
+    input.value = "";
+    render();
+    showToast(`${st.code} registrada`);
     }
     $("codeInput").addEventListener("input", e => { e.target.value = normalizeCode(e.target.value); });
     $("codeInput").addEventListener("keydown", e => { if (e.key === "Enter") registerTypedCode(); });
