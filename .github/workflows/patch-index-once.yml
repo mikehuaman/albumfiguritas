@@ -30,17 +30,8 @@ jobs:
 
           html = html.replace('<title>Mi Álbum Mundial 2026</title>', '<title>ALBUM 2026</title>')
           html = html.replace('<meta name="apple-mobile-web-app-title" content="Álbum 2026" />', '<meta name="apple-mobile-web-app-title" content="ALBUM 2026" />')
-          html = re.sub(
-              r'<h1>Mi Álbum Mundial 2026</h1>\s*<p class="subtitle">.*?</p>',
-              '<h1>ALBUM 2026</h1>',
-              html,
-              flags=re.S,
-          )
-
-          html = html.replace(
-              '@media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto auto auto; align-items: center; } }',
-              '@media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto; align-items: center; } }',
-          )
+          html = re.sub(r'<h1>Mi Álbum Mundial 2026</h1>\s*<p class="subtitle">.*?</p>', '<h1>ALBUM 2026</h1>', html, flags=re.S)
+          html = html.replace('@media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto auto auto; align-items: center; } }', '@media (min-width: 760px) { .toolbar { grid-template-columns: 1.1fr auto auto; align-items: center; } }')
 
           css_insert = '''
     .view-actions { display:flex; align-items:center; gap:8px; width:100%; }
@@ -75,30 +66,13 @@ jobs:
           if old_controls in html:
               html = html.replace(old_controls, new_controls)
           else:
-              html = re.sub(
-                  r'\s*<select id="view">\s*<option value="all">Ver todo</option>\s*<option value="missing">Solo faltantes</option>\s*<option value="owned">Solo tengo</option>\s*<option value="duplicates">Solo repetidas</option>\s*</select>\s*<button class="btn" id="openAll">Abrir secciones</button>\s*<button class="btn" id="closeAll">Cerrar secciones</button>',
-                  '\n' + new_controls,
-                  html,
-                  flags=re.S,
-              )
+              html = re.sub(r'\s*<select id="view">\s*<option value="all">Ver todo</option>\s*<option value="missing">Solo faltantes</option>\s*<option value="owned">Solo tengo</option>\s*<option value="duplicates">Solo repetidas</option>\s*</select>\s*<button class="btn" id="openAll">Abrir secciones</button>\s*<button class="btn" id="closeAll">Cerrar secciones</button>', '\n' + new_controls, html, flags=re.S)
 
           addon = r'''
 
     // Mejoras visuales y táctiles añadidas para móvil/PWA.
     const SECTION_FLAGS = {
-      "00":"✨", "FWC":"🏆", "MEX":"🇲🇽", "CAN":"🇨🇦", "USA":"🇺🇸",
-      "RSA":"🇿🇦", "KOR":"🇰🇷", "CZE":"🇨🇿", "QAT":"🇶🇦", "ECU":"🇪🇨",
-      "SEN":"🇸🇳", "NED":"🇳🇱", "ENG":"🏴", "IRN":"🇮🇷", "WAL":"🏴",
-      "ARG":"🇦🇷", "KSA":"🇸🇦", "POL":"🇵🇱", "FRA":"🇫🇷", "AUS":"🇦🇺",
-      "DEN":"🇩🇰", "TUN":"🇹🇳", "ESP":"🇪🇸", "CRC":"🇨🇷", "GER":"🇩🇪",
-      "JPN":"🇯🇵", "BEL":"🇧🇪", "MAR":"🇲🇦", "CRO":"🇭🇷", "BRA":"🇧🇷",
-      "SRB":"🇷🇸", "SUI":"🇨🇭", "CMR":"🇨🇲", "POR":"🇵🇹", "GHA":"🇬🇭",
-      "URU":"🇺🇾", "COL":"🇨🇴", "PER":"🇵🇪", "CHI":"🇨🇱", "PAR":"🇵🇾",
-      "BOL":"🇧🇴", "VEN":"🇻🇪", "NZL":"🇳🇿", "JAM":"🇯🇲", "PAN":"🇵🇦",
-      "HAI":"🇭🇹", "CUR":"🇨🇼", "ALG":"🇩🇿", "EGY":"🇪🇬", "NGA":"🇳🇬",
-      "CIV":"🇨🇮", "GAB":"🇬🇦", "CPV":"🇨🇻", "TUR":"🇹🇷", "ITA":"🇮🇹",
-      "NOR":"🇳🇴", "SWE":"🇸🇪", "UKR":"🇺🇦", "AUT":"🇦🇹", "HUN":"🇭🇺",
-      "ROU":"🇷🇴", "GRE":"🇬🇷", "SCO":"🏴", "IRL":"🇮🇪", "NIR":"🇬🇧"
+      "00":"✨", "FWC":"🏆", "MEX":"🇲🇽", "CAN":"🇨🇦", "USA":"🇺🇸", "RSA":"🇿🇦", "KOR":"🇰🇷", "CZE":"🇨🇿", "QAT":"🇶🇦", "ECU":"🇪🇨", "SEN":"🇸🇳", "NED":"🇳🇱", "ENG":"🏴", "IRN":"🇮🇷", "WAL":"🏴", "ARG":"🇦🇷", "KSA":"🇸🇦", "POL":"🇵🇱", "FRA":"🇫🇷", "AUS":"🇦🇺", "DEN":"🇩🇰", "TUN":"🇹🇳", "ESP":"🇪🇸", "CRC":"🇨🇷", "GER":"🇩🇪", "JPN":"🇯🇵", "BEL":"🇧🇪", "MAR":"🇲🇦", "CRO":"🇭🇷", "BRA":"🇧🇷", "SRB":"🇷🇸", "SUI":"🇨🇭", "CMR":"🇨🇲", "POR":"🇵🇹", "GHA":"🇬🇭", "URU":"🇺🇾", "COL":"🇨🇴", "PER":"🇵🇪", "CHI":"🇨🇱", "PAR":"🇵🇾", "BOL":"🇧🇴", "VEN":"🇻🇪", "NZL":"🇳🇿", "JAM":"🇯🇲", "PAN":"🇵🇦", "HAI":"🇭🇹", "CUR":"🇨🇼", "ALG":"🇩🇿", "EGY":"🇪🇬", "NGA":"🇳🇬", "CIV":"🇨🇮", "GAB":"🇬🇦", "CPV":"🇨🇻", "TUR":"🇹🇷", "ITA":"🇮🇹", "NOR":"🇳🇴", "SWE":"🇸🇪", "UKR":"🇺🇦", "AUT":"🇦🇹", "HUN":"🇭🇺", "ROU":"🇷🇴", "GRE":"🇬🇷", "SCO":"🏴", "IRL":"🇮🇪", "NIR":"🇬🇧"
     };
 
     function decorateSectionFlags() {
@@ -135,9 +109,9 @@ jobs:
               html = html[:pos] + addon + html[pos:]
 
           if html == original:
-              raise SystemExit('No se aplicó ningún cambio al index.html')
-
-          path.write_text(html, encoding='utf-8')
+              print('index.html ya estaba actualizado')
+          else:
+              path.write_text(html, encoding='utf-8')
           PY
 
       - name: Commit patched index and remove one-time workflow
@@ -146,5 +120,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/patch-index-once.yml
           git add index.html
-          git commit -m "Update album UI and mobile feedback"
+          git commit -m "Update album UI and mobile feedback" || echo "No changes to commit"
           git push
