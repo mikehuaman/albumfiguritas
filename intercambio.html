@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Intercambio · ALBUM 2026</title>
+
+  <link rel="apple-touch-icon" href="logomundial.png" />
+  <link rel="icon" type="image/png" href="logomundial.png" />
+  <meta name="apple-mobile-web-app-title" content="INTERCAMBIO" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <style>
+    :root {
+      --bg: #080b12;
+      --panel: #101522;
+      --panel-2: #151c2d;
+      --muted: #8993a5;
+      --text: #eef3ff;
+      --line: rgba(255,255,255,.10);
+      --yellow: #facc15;
+      --green: #34d399;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --shadow: 0 18px 50px rgba(0,0,0,.32);
+      --radius: 18px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(250,204,21,.12), transparent 32rem),
+        radial-gradient(circle at top right, rgba(52,211,153,.11), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    .app { max-width: 1180px; margin: 0 auto; padding: 18px 14px 90px; }
+
+    .hero {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: -18px -14px 14px;
+      padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+      background: rgba(8,11,18,.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-inner { max-width: 1180px; margin: 0 auto; }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+
+    h1 { margin: 0; font-size: clamp(22px, 5vw, 42px); letter-spacing: -.04em; line-height: 1; }
+    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.02em; }
+    h3 { margin: 0; font-size: 15px; }
+
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-logo { width: 42px; height: 42px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
+    .brand-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .byline { color: var(--muted); margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+
+    @media (min-width: 760px) {
+      .brand-logo { width: 52px; height: 52px; }
+      .byline { font-size: 13px; }
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 13px;
+      min-height: 42px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn:hover { background: rgba(255,255,255,.11); }
+    .btn:active { transform: scale(.98); }
+    .btn.primary { background: var(--yellow); color:#111827; border-color: transparent; font-weight: 900; }
+    .btn.green { background: var(--green); color:#061018; border-color: transparent; font-weight: 900; }
+    .btn.danger { color: #fecaca; border-color: rgba(248,113,113,.35); }
+    .btn.full { width: 100%; }
+
+    .panel, .list-card {
+      background: rgba(16,21,34,.72);
+      border:1px solid var(--line);
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    .small-note { color: var(--muted); font-size: 12px; line-height:1.35; margin: 8px 0 0; }
+    .hidden { display:none !important; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(20px);
+      opacity:0;
+      pointer-events:none;
+      background: #f8fafc;
+      color:#0b0f19;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+      transition: .18s ease;
+      z-index: 999;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+
+    .exchange-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 12px 0 0;
+    }
+
+    @media (min-width: 760px) {
+      .exchange-actions { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .mode-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+      border-radius: 20px;
+      padding: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 150px;
+    }
+
+    .mode-card .icon { font-size: 28px; }
+
+    .stats {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin: 12px 0;
+    }
+
+    @media (min-width: 760px) { .stats { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+
+    .stat {
+      background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }
+    .num { margin-top:5px; font-size: 25px; font-weight: 900; letter-spacing: -.04em; }
+
+    .qr-box {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 14px;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .qr-holder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border-radius: 18px;
+      padding: 12px;
+      width: fit-content;
+      margin: 12px auto 0;
+      min-width: 248px;
+      min-height: 248px;
+    }
+
+    .qr-holder img, .qr-holder canvas { border-radius: 8px; }
+
+    .scanner-box {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.35);
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    #reader {
+      width: 100%;
+      min-height: 280px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #030712;
+      position: relative;
+    }
+
+    #reader::after {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 230px;
+      height: 230px;
+      transform: translate(-50%, -50%);
+      border: 3px solid rgba(250,204,21,.88);
+      border-radius: 24px;
+      box-shadow: 0 0 0 999px rgba(0,0,0,.20);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .trade-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    @media (min-width: 850px) {
+      .trade-layout { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tray {
+      background: rgba(16,21,34,.72);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 12px;
+      min-height: 92px;
+    }
+
+    .list-head { display:flex; align-items:center; justify-content:space-between; gap: 8px; margin-bottom:8px; }
+    .list-title { font-weight:900; }
+    .pill { font-size:11px; font-weight:900; color: var(--yellow); background: rgba(250,204,21,.10); padding: 4px 8px; border-radius: 999px; }
+
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    @media (min-width: 420px) { .grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+    @media (min-width: 760px) { .grid { grid-template-columns: repeat(6, minmax(0,1fr)); } }
+    @media (min-width: 1050px) { .grid { grid-template-columns: repeat(8, minmax(0,1fr)); } }
+
+    .card {
+      aspect-ratio: 3 / 4;
+      min-height: 116px;
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      border-radius: 10px;
+      overflow:hidden;
+      user-select:none;
+      border:1px solid rgba(255,255,255,.10);
+      background: #111827;
+      color: #7f8797;
+    }
+
+    .card.available { background: rgba(16,185,129,.10); border-color: rgba(52,211,153,.34); color: var(--green); }
+    .card.selected { outline: 2px solid rgba(250,204,21,.75); background: rgba(250,204,21,.13); color: var(--yellow); }
+    .card.receive { background: rgba(96,165,250,.11); border-color: rgba(96,165,250,.34); color: #93c5fd; }
+    .card.receive.selected { outline: 2px solid rgba(96,165,250,.85); }
+
+    .badge {
+      position:absolute;
+      top:6px;
+      right:6px;
+      background: var(--green);
+      color:#061018;
+      border-radius: 999px;
+      font-size:10px;
+      font-weight: 900;
+      padding: 2px 6px;
+    }
+
+    .badge.blue { background: var(--blue); color: #061018; }
+    .code { font-size: 17px; font-weight: 950; letter-spacing: -.03em; }
+    .name { margin-top:6px; padding:0 6px; width:100%; font-size:10px; color: #a8b1c2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-height: 14px; }
+
+    .card-action {
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      padding: 7px 5px;
+      background: rgba(0,0,0,.36);
+      font-size: 11px;
+      font-weight: 900;
+      color: #f8fafc;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 7px 9px;
+      font-weight: 900;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip.give { color: #bbf7d0; border-color: rgba(52,211,153,.28); }
+    .chip.receive { color: #bfdbfe; border-color: rgba(96,165,250,.28); }
+    .chip button { border: 0; background: transparent; color: inherit; font-weight: 950; padding: 0; }
+
+    .footer-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+
+    .error-box {
+      background: rgba(248,113,113,.10);
+      border: 1px solid rgba(248,113,113,.35);
+      color: #fecaca;
+      border-radius: 18px;
+      padding: 12px;
+      margin-top: 12px;
+      line-height: 1.4;
+      font-size: 13px;
+    }
+
+    textarea {
+      width:100%;
+      min-height: 90px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color: #dbeafe;
+      border-radius: 14px;
+      padding: 10px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="topline">
+          <div class="brand">
+            <img src="logobase.png" alt="Logo base" class="brand-logo" />
+            <div class="brand-text">
+              <h1>INTERCAMBIO</h1>
+              <div class="byline">ALBUM 2026 · by @mikehuaman</div>
+            </div>
+          </div>
+          <a class="btn primary" href="index.html">Volver</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="stat"><div class="label">Tengo</div><div class="num" id="ownedStat">0</div></div>
+      <div class="stat"><div class="label">Faltan</div><div class="num" id="missingStat">0</div></div>
+      <div class="stat"><div class="label">Repetidas</div><div class="num" id="dupesStat">0</div></div>
+      <div class="stat"><div class="label">Cartas base</div><div class="num" id="totalStat">0</div></div>
+    </section>
+
+    <section class="panel" id="setupPanel">
+      <h2>Zona de intercambio</h2>
+      <p class="small-note">
+        Flujo pensado para dos personas: el sujeto B muestra su QR, el sujeto A lo escanea, selecciona qué entrega y qué recibe, registra su cambio y luego muestra un QR final para que el sujeto B actualice su propia lista.
+      </p>
+
+      <div id="baseError" class="error-box hidden"></div>
+
+      <div class="exchange-actions">
+        <div class="mode-card">
+          <div class="icon">📱</div>
+          <h3>Mostrar mi QR</h3>
+          <p class="small-note">Úsalo cuando tú seas el sujeto B. La otra persona podrá escanear tus repetidas y faltantes.</p>
+          <button class="btn primary full" id="myQrBtn">Enseñar QR</button>
+        </div>
+
+        <div class="mode-card">
+          <div class="icon">📷</div>
+          <h3>Escanear QR</h3>
+          <p class="small-note">Úsalo cuando tú seas el sujeto A. Escanea el QR de la otra persona y arma el intercambio.</p>
+          <button class="btn full" id="scanFriendBtn">Escanear QR</button>
+        </div>
+      </div>
+
+      <div id="myQrPanel" class="qr-box hidden">
+        <h2>Mi QR de intercambio</h2>
+        <p class="small-note">Este QR contiene tu estado actual de cartas. No modifica nada por sí solo.</p>
+        <div id="myQr" class="qr-holder"></div>
+        <div class="footer-actions" style="justify-content:center;">
+          <button class="btn green" id="scanTradeResultBtn">Efectuar cambio recibido</button>
+          <button class="btn" id="refreshQrBtn">Actualizar QR</button>
+        </div>
+        <p class="small-note">Después de que la otra persona efectúe el cambio, escanea aquí el QR final que te muestre para actualizar tu lista.</p>
+      </div>
+
+      <div id="scannerPanel" class="scanner-box hidden">
+        <h2 id="scannerTitle">Escanear QR</h2>
+        <div id="reader"></div>
+        <div class="footer-actions">
+          <button class="btn danger" id="stopScannerBtn">Cerrar cámara</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparisonPanel" class="panel hidden">
+      <h2>Intercambio posible</h2>
+      <p class="small-note" id="comparisonNote">
+        Selecciona qué cartas quieres entregar y qué cartas quieres recibir. Puedes cambiar varias por una sola.
+      </p>
+
+      <div class="trade-layout">
+        <div class="tray">
+          <div class="list-head">
+            <div class="list-title">Puedes entregar</div>
+            <span class="pill" id="giveCount">0</span>
+          </div>
+          <p class="small-note">Son tus repetidas que a la otra persona le faltan.</p>
+          <div id="giveList" class="grid"></div>
+        </div>
+
+        <div class="tray">
+          <div class="list-head">
+            <div class="list-title">Puedes recibir</div>
+            <span class="pill" id="receiveCount">0</span>
+          </div>
+          <p class="small-note">Son sus repetidas que a ti te faltan.</p>
+          <div id="receiveList" class="grid"></div>
+        </div>
+      </div>
+
+      <div class="trade-layout">
+        <div class="tray">
+          <div class="list-title">Bandeja: entregar</div>
+          <div id="giveTray" class="small-note">Nada seleccionado.</div>
+        </div>
+
+        <div class="tray">
+          <div class="list-title">Bandeja: recibir</div>
+          <div id="receiveTray" class="small-note">Nada seleccionado.</div>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn primary" id="applyTradeBtn">Efectuar cambios</button>
+        <button class="btn danger" id="clearSelectionBtn">Limpiar selección</button>
+      </div>
+    </section>
+
+    <section id="resultPanel" class="qr-box hidden">
+      <h2>QR final para la otra persona</h2>
+      <p class="small-note">
+        Tu lista ya fue actualizada. Ahora muestra este QR al otro celular para que también registre su cambio.
+      </p>
+      <div id="resultQr" class="qr-holder"></div>
+      <p class="small-note" id="resultSummary"></p>
+    </section>
+
+    <section class="list-card">
+      <div class="list-head"><div class="list-title">Respaldo manual del QR</div></div>
+      <p class="small-note">Si por alguna razón el QR no se lee, puedes copiar este texto y pegarlo en otra versión futura de la app.</p>
+      <textarea id="payloadBox" readonly></textarea>
+    </section>
+  </div>
+
+  <div id="toast" class="toast">Listo</div>
+
+  <script src="album-data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script>
+    const STORAGE_KEY = "mi_album_mundial_2026_v1";
+    const PROFILE_KEY = "mi_album_mundial_2026_profile_id_v1";
+
+    const $ = (id) => document.getElementById(id);
+
+    let stickers = [];
+    let quantities = loadQuantities();
+    let profileId = loadProfileId();
+    let friendProfile = null;
+    let friendQuantities = {};
+    let selectedGive = new Set();
+    let selectedReceive = new Set();
+    let scanner = null;
+    let scannerMode = "friend-profile";
+    let lastResultPayload = "";
+
+    const SECTION_FLAGS = {
+      "00": "✨", "FWC": "🏆", "MEX": "🇲🇽", "RSA": "🇿🇦", "KOR": "🇰🇷", "CZE": "🇨🇿", "CAN": "🇨🇦", "BIH": "🇧🇦", "QAT": "🇶🇦", "SUI": "🇨🇭", "BRA": "🇧🇷", "MAR": "🇲🇦", "HAI": "🇭🇹", "SCO": "🏴", "USA": "🇺🇸", "PAR": "🇵🇾", "AUS": "🇦🇺", "TUR": "🇹🇷", "GER": "🇩🇪", "CUW": "🇨🇼", "CIV": "🇨🇮", "ECU": "🇪🇨", "NED": "🇳🇱", "JPN": "🇯🇵", "SWE": "🇸🇪", "TUN": "🇹🇳", "BEL": "🇧🇪", "EGY": "🇪🇬", "IRN": "🇮🇷", "NZL": "🇳🇿", "ESP": "🇪🇸", "CPV": "🇨🇻", "KSA": "🇸🇦", "URU": "🇺🇾", "FRA": "🇫🇷", "SEN": "🇸🇳", "IRQ": "🇮🇶", "NOR": "🇳🇴", "ARG": "🇦🇷", "ALG": "🇩🇿", "AUT": "🇦🇹", "JOR": "🇯🇴", "POR": "🇵🇹", "COD": "🇨🇩", "UZB": "🇺🇿", "COL": "🇨🇴", "ENG": "🏴", "CRO": "🇭🇷", "GHA": "🇬🇭", "PAN": "🇵🇦"
+    };
+
+    init();
+
+    async function init() {
+      stickers = await loadBaseStickers();
+      if (!stickers.length) {
+        showBaseError();
+        updateStats();
+        return;
+      }
+
+      hideBaseError();
+      updateStats();
+      bindEvents();
+    }
+
+    function bindEvents() {
+      $("myQrBtn").addEventListener("click", showMyQr);
+      $("refreshQrBtn").addEventListener("click", showMyQr);
+
+      $("scanFriendBtn").addEventListener("click", () => {
+        scannerMode = "friend-profile";
+        startScanner("Escanear QR de la otra persona");
+      });
+
+      $("scanTradeResultBtn").addEventListener("click", () => {
+        scannerMode = "trade-result";
+        startScanner("Escanear QR final del cambio");
+      });
+
+      $("stopScannerBtn").addEventListener("click", stopScanner);
+      $("applyTradeBtn").addEventListener("click", applySelectedTrade);
+      $("clearSelectionBtn").addEventListener("click", () => {
+        selectedGive.clear();
+        selectedReceive.clear();
+        renderComparison();
+      });
+    }
+
+    async function loadBaseStickers() {
+      try {
+        if (typeof BASE_STICKERS !== "undefined" && Array.isArray(BASE_STICKERS)) {
+          return BASE_STICKERS;
+        }
+      } catch {}
+
+      try {
+        const response = await fetch("index.html", { cache: "no-store" });
+        if (!response.ok) return [];
+        const html = await response.text();
+        const arrText = extractBaseArrayFromIndex(html);
+        if (!arrText) return [];
+        const parsed = JSON.parse(arrText);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function extractBaseArrayFromIndex(text) {
+      const marker = "const BASE_STICKERS";
+      const start = text.indexOf(marker);
+      if (start === -1) return null;
+
+      const bracketStart = text.indexOf("[", start);
+      if (bracketStart === -1) return null;
+
+      let depth = 0;
+      let inString = false;
+      let quote = "";
+      let escaped = false;
+
+      for (let i = bracketStart; i < text.length; i++) {
+        const ch = text[i];
+
+        if (inString) {
+          if (escaped) { escaped = false; continue; }
+          if (ch === "\\") { escaped = true; continue; }
+          if (ch === quote) { inString = false; quote = ""; }
+          continue;
+        }
+
+        if (ch === '"' || ch === "'") {
+          inString = true;
+          quote = ch;
+          continue;
+        }
+
+        if (ch === "[") depth++;
+        if (ch === "]") depth--;
+
+        if (depth === 0) return text.slice(bracketStart, i + 1);
+      }
+
+      return null;
+    }
+
+    function showBaseError() {
+      const box = $("baseError");
+      box.classList.remove("hidden");
+      box.innerHTML = `No pude encontrar la base de cartas. Coloca este archivo <b>intercambio.html</b> en la misma carpeta que tu <b>index.html</b>, o crea un archivo <b>album-data.js</b> con tu arreglo <b>BASE_STICKERS</b>.`;
+    }
+
+    function hideBaseError() {
+      $("baseError").classList.add("hidden");
+    }
+
+    function loadQuantities() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+    }
+
+    function saveQuantities(next = quantities) {
+      quantities = sanitizeQuantities(next);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(quantities));
+      updateStats();
+    }
+
+    function sanitizeQuantities(input) {
+      const clean = {};
+      for (const [code, value] of Object.entries(input || {})) {
+        const n = Math.max(0, Math.floor(Number(value) || 0));
+        if (n > 0) clean[String(code).toUpperCase()] = n;
+      }
+      return clean;
+    }
+
+    function loadProfileId() {
+      let id = localStorage.getItem(PROFILE_KEY);
+      if (!id) {
+        id = "p" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+        localStorage.setItem(PROFILE_KEY, id);
+      }
+      return id;
+    }
+
+    function qtyFrom(map, code) {
+      return Number((map || {})[code] || 0);
+    }
+
+    function qty(code) {
+      return qtyFrom(quantities, code);
+    }
+
+    function duplicateUnits(map) {
+      return stickers.reduce((sum, st) => sum + Math.max(0, qtyFrom(map, st.code) - 1), 0);
+    }
+
+    function updateStats() {
+      const total = stickers.length || 0;
+      const owned = stickers.filter(st => qty(st.code) > 0).length;
+      const missing = Math.max(0, total - owned);
+      const dupes = duplicateUnits(quantities);
+      $("totalStat").textContent = total;
+      $("ownedStat").textContent = owned;
+      $("missingStat").textContent = missing;
+      $("dupesStat").textContent = dupes;
+    }
+
+    function showToast(msg = "Listo") {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1600);
+    }
+
+    function smallVibration() {
+      if ("vibrate" in navigator) navigator.vibrate(12);
+    }
+
+    function sectionTitleWithFlag(st) {
+      const flag = SECTION_FLAGS[st.section] || "🏳️";
+      return `${flag} ${st.sectionName || st.section || ""}`;
+    }
+
+    function encodeQuantitiesRLE(map) {
+      const tokens = [];
+      let zeroRun = 0;
+
+      for (const st of stickers) {
+        const n = Math.max(0, Math.floor(qtyFrom(map, st.code)));
+
+        if (n === 0) {
+          zeroRun++;
+          continue;
+        }
+
+        if (zeroRun) {
+          tokens.push("z" + zeroRun.toString(36));
+          zeroRun = 0;
+        }
+
+        tokens.push(n.toString(36));
+      }
+
+      if (zeroRun) tokens.push("z" + zeroRun.toString(36));
+      return tokens.join(".");
+    }
+
+    function decodeQuantitiesRLE(rle) {
+      const out = {};
+      if (!rle) return out;
+
+      const tokens = String(rle).split(".").filter(Boolean);
+      let index = 0;
+
+      for (const token of tokens) {
+        if (token.startsWith("z")) {
+          index += parseInt(token.slice(1), 36) || 0;
+          continue;
+        }
+
+        const st = stickers[index];
+        const n = parseInt(token, 36) || 0;
+        if (st && n > 0) out[st.code] = n;
+        index++;
+      }
+
+      return out;
+    }
+
+    function encodeProfilePayload(map) {
+      return `A26P1|${profileId}|${encodeQuantitiesRLE(map)}`;
+    }
+
+    function encodeTradeResultPayload(targetId, targetQuantities, trade) {
+      const give = (trade.giveCodes || []).join(",");
+      const receive = (trade.receiveCodes || []).join(",");
+      return `A26T1|${targetId}|${encodeQuantitiesRLE(targetQuantities)}|g:${give}|r:${receive}`;
+    }
+
+    function decodePayload(text) {
+      const raw = String(text || "").trim();
+
+      if (raw.startsWith("A26P1|")) {
+        const [, ownerId, rle] = raw.split("|");
+        return {
+          kind: "profile",
+          ownerId,
+          quantities: decodeQuantitiesRLE(rle)
+        };
+      }
+
+      if (raw.startsWith("A26T1|")) {
+        const parts = raw.split("|");
+        const targetId = parts[1];
+        const rle = parts[2];
+        const give = (parts.find(p => p.startsWith("g:")) || "g:").slice(2).split(",").filter(Boolean);
+        const receive = (parts.find(p => p.startsWith("r:")) || "r:").slice(2).split(",").filter(Boolean);
+
+        return {
+          kind: "trade-result",
+          targetId,
+          quantities: decodeQuantitiesRLE(rle),
+          trade: { giveCodes: give, receiveCodes: receive }
+        };
+      }
+
+      try {
+        const json = JSON.parse(raw);
+        if (json && json.quantities) {
+          return {
+            kind: json.type === "album2026-trade-result" ? "trade-result" : "profile",
+            ownerId: json.ownerId || json.profileId || "legacy",
+            targetId: json.targetOwnerId || json.targetId || null,
+            quantities: sanitizeQuantities(json.quantities),
+            trade: json.trade || {}
+          };
+        }
+      } catch {}
+
+      throw new Error("Este QR no pertenece al álbum o no tiene un formato compatible.");
+    }
+
+    function generateQr(containerId, payloadText) {
+      const el = $(containerId);
+      el.innerHTML = "";
+      $("payloadBox").value = payloadText;
+
+      if (typeof QRCode === "undefined") {
+        el.innerHTML = `<div class="error-box">No cargó la librería para generar QR. Revisa tu conexión a internet.</div>`;
+        return;
+      }
+
+      new QRCode(el, {
+        text: payloadText,
+        width: 240,
+        height: 240,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    function showMyQr() {
+      quantities = loadQuantities();
+      const payload = encodeProfilePayload(quantities);
+      $("myQrPanel").classList.remove("hidden");
+      generateQr("myQr", payload);
+      showToast("QR actualizado");
+    }
+
+    async function startScanner(title) {
+      if (!stickers.length) {
+        showBaseError();
+        return;
+      }
+
+      $("scannerTitle").textContent = title || "Escanear QR";
+      $("scannerPanel").classList.remove("hidden");
+
+      if (typeof Html5Qrcode === "undefined") {
+        alert("No cargó la librería para escanear QR. Revisa tu conexión a internet.");
+        return;
+      }
+
+      if (scanner) {
+        try { await scanner.stop(); } catch {}
+      }
+
+      scanner = new Html5Qrcode("reader");
+
+      scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 230, height: 230 },
+          experimentalFeatures: { useBarCodeDetectorIfSupported: false }
+        },
+        onQrScanned,
+        () => {}
+      ).catch(() => {
+        alert("No se pudo abrir la cámara. En iPhone normalmente debes abrir esta página desde HTTPS y aceptar permisos de cámara.");
+      });
+    }
+
+    async function stopScanner() {
+      if (scanner) {
+        try { await scanner.stop(); } catch {}
+        scanner = null;
+      }
+
+      $("scannerPanel").classList.add("hidden");
+      $("reader").innerHTML = "";
+    }
+
+    async function onQrScanned(decodedText) {
+      await stopScanner();
+      smallVibration();
+
+      try {
+        const data = decodePayload(decodedText);
+
+        if (scannerMode === "friend-profile") {
+          if (data.kind !== "profile") throw new Error("Debes escanear el QR inicial de la otra persona.");
+          if (data.ownerId === profileId) throw new Error("Este parece ser tu propio QR. Escanea el QR de la otra persona.");
+
+          friendProfile = data;
+          friendQuantities = data.quantities || {};
+          selectedGive.clear();
+          selectedReceive.clear();
+          renderComparison();
+          showToast("QR leído");
+          return;
+        }
+
+        if (scannerMode === "trade-result") {
+          if (data.kind !== "trade-result") throw new Error("Debes escanear el QR final del cambio.");
+
+          if (data.targetId && data.targetId !== profileId) {
+            const ok = confirm("Este QR final no parece estar dirigido a este álbum. ¿Igual quieres aplicarlo?");
+            if (!ok) return;
+          }
+
+          saveQuantities(data.quantities || {});
+          showMyQr();
+          showToast("Cambio registrado");
+          return;
+        }
+      } catch (err) {
+        alert("No se pudo leer este QR: " + err.message);
+      }
+    }
+
+    function renderComparison() {
+      quantities = loadQuantities();
+
+      const canGive = stickers.filter(st => qty(st.code) > 1 && qtyFrom(friendQuantities, st.code) === 0);
+      const canReceive = stickers.filter(st => qtyFrom(friendQuantities, st.code) > 1 && qty(st.code) === 0);
+
+      $("comparisonPanel").classList.remove("hidden");
+      $("resultPanel").classList.add("hidden");
+      $("giveCount").textContent = canGive.length;
+      $("receiveCount").textContent = canReceive.length;
+
+      $("comparisonNote").textContent = `Se encontró un QR compatible. Puedes entregar ${canGive.length} carta(s) y recibir ${canReceive.length} carta(s), según repetidas y faltantes de ambos álbumes.`;
+
+      renderSelectableCards("giveList", canGive, selectedGive, "give");
+      renderSelectableCards("receiveList", canReceive, selectedReceive, "receive");
+      updateTrays();
+    }
+
+    function renderSelectableCards(containerId, items, selectedSet, kind) {
+      const box = $(containerId);
+      box.innerHTML = "";
+
+      if (!items.length) {
+        box.innerHTML = `<p class="small-note">No hay cartas disponibles en esta categoría.</p>`;
+        return;
+      }
+
+      for (const st of items) {
+        const q = kind === "give" ? qty(st.code) : qtyFrom(friendQuantities, st.code);
+        const el = document.createElement("div");
+        const isSelected = selectedSet.has(st.code);
+        el.className = `card available ${kind === "receive" ? "receive" : ""} ${isSelected ? "selected" : ""}`;
+        el.innerHTML = `
+          <div class="badge ${kind === "receive" ? "blue" : ""}">x${q}</div>
+          <div class="code">${escapeHtml(st.code)}</div>
+          <div class="name">${escapeHtml(sectionTitleWithFlag(st))}</div>
+          <div class="card-action">${isSelected ? "QUITAR" : "AÑADIR"}</div>
+        `;
+
+        el.addEventListener("click", () => {
+          if (selectedSet.has(st.code)) selectedSet.delete(st.code);
+          else selectedSet.add(st.code);
+          renderComparison();
+        });
+
+        box.appendChild(el);
+      }
+    }
+
+    function updateTrays() {
+      renderChips("giveTray", selectedGive, "give");
+      renderChips("receiveTray", selectedReceive, "receive");
+    }
+
+    function renderChips(containerId, selectedSet, kind) {
+      const box = $(containerId);
+      if (!selectedSet.size) {
+        box.className = "small-note";
+        box.textContent = "Nada seleccionado.";
+        return;
+      }
+
+      box.className = "chips";
+      box.innerHTML = "";
+
+      for (const code of selectedSet) {
+        const chip = document.createElement("span");
+        chip.className = `chip ${kind}`;
+        chip.innerHTML = `${escapeHtml(code)} <button type="button" aria-label="Quitar">×</button>`;
+        chip.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectedSet.delete(code);
+          renderComparison();
+        });
+        box.appendChild(chip);
+      }
+    }
+
+    function applyTrade(map, giveCodes, receiveCodes) {
+      const next = { ...sanitizeQuantities(map) };
+
+      for (const code of giveCodes) {
+        next[code] = Math.max(0, Number(next[code] || 0) - 1);
+        if (next[code] === 0) delete next[code];
+      }
+
+      for (const code of receiveCodes) {
+        next[code] = Number(next[code] || 0) + 1;
+      }
+
+      return sanitizeQuantities(next);
+    }
+
+    function applySelectedTrade() {
+      if (!friendProfile) {
+        alert("Primero escanea el QR de la otra persona.");
+        return;
+      }
+
+      if (!selectedGive.size && !selectedReceive.size) {
+        alert("Selecciona al menos una carta para entregar o recibir.");
+        return;
+      }
+
+      quantities = loadQuantities();
+
+      const giveCodes = [...selectedGive];
+      const receiveCodes = [...selectedReceive];
+
+      const invalidGive = giveCodes.find(code => qty(code) <= 1 || qtyFrom(friendQuantities, code) !== 0);
+      const invalidReceive = receiveCodes.find(code => qtyFrom(friendQuantities, code) <= 1 || qty(code) !== 0);
+
+      if (invalidGive || invalidReceive) {
+        alert("La selección ya no es válida. Se actualizará la comparación.");
+        renderComparison();
+        return;
+      }
+
+      const updatedMine = applyTrade(quantities, giveCodes, receiveCodes);
+      const updatedFriend = applyTrade(friendQuantities, receiveCodes, giveCodes);
+
+      saveQuantities(updatedMine);
+      friendQuantities = updatedFriend;
+
+      lastResultPayload = encodeTradeResultPayload(friendProfile.ownerId, updatedFriend, { giveCodes, receiveCodes });
+      generateQr("resultQr", lastResultPayload);
+
+      $("resultPanel").classList.remove("hidden");
+      $("resultSummary").textContent = `Tú entregaste: ${giveCodes.length ? giveCodes.join(", ") : "nada"}. Tú recibiste: ${receiveCodes.length ? receiveCodes.join(", ") : "nada"}.`;
+
+      selectedGive.clear();
+      selectedReceive.clear();
+      renderComparison();
+      showToast("Cambio registrado");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[s]));
+    }
+  </script>
+</body>
+</html>
