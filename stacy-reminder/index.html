@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Stacy — Mueve el mouse</title>
+  <style>
+    :root { --bg:#0b1020; --panel:#121a2f; --text:#f6f8ff; --muted:#aab5d1; --blue:#0a84ff; --blue-pressed:#006edc; --danger:#ff453a; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif; }
+    body { min-height:100vh; min-height:100dvh; display:grid; place-items:center; padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left)); }
+    .card { width:min(680px,100%); background:var(--panel); border-radius:32px; padding:42px 34px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,.35); }
+    h1 { margin:0 0 12px; font-size:clamp(28px,5vw,46px); letter-spacing:-.03em; }
+    #status { margin:0 auto 22px; color:var(--muted); font-size:clamp(17px,2.5vw,22px); min-height:1.5em; }
+    #timer { font-size:clamp(76px,18vw,138px); font-weight:800; line-height:.95; letter-spacing:-.06em; font-variant-numeric:tabular-nums; margin:22px 0 34px; }
+    #timer.alert { color:var(--danger); animation:pulse .7s ease-in-out infinite alternate; }
+    @keyframes pulse { from { transform:scale(1); opacity:1; } to { transform:scale(1.04); opacity:.78; } }
+    button { width:100%; border:0; border-radius:22px; padding:24px; color:white; background:var(--blue); font-size:clamp(23px,4vw,34px); font-weight:800; letter-spacing:.02em; cursor:pointer; touch-action:manipulation; box-shadow:0 10px 30px rgba(10,132,255,.28); }
+    button:active { transform:scale(.985); background:var(--blue-pressed); }
+    #ackBtn { display:none; }
+    .note { margin:24px 0 0; color:var(--muted); font-size:14px; line-height:1.45; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Recordatorio</h1>
+    <p id="status">Toca iniciar para activar sonido y voz.</p>
+    <div id="timer">4:00</div>
+    <button id="startBtn">INICIAR</button>
+    <button id="ackBtn">YA LO MOVÍ</button>
+    <p class="note">Mantén esta página abierta en Safari. En iPad, el primer toque es necesario para habilitar el audio y la voz.</p>
+  </main>
+<script>
+(() => {
+  const CYCLE_MS = 4 * 60 * 1000;
+  const timerEl = document.getElementById('timer');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('startBtn');
+  const ackBtn = document.getElementById('ackBtn');
+  let deadline = null, tickInterval = null, alarmRepeatInterval = null, audioCtx = null, active = false, alarming = false;
+
+  function ensureAudio() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function beep(freq = 880, duration = 0.22, delay = 0) {
+    if (!audioCtx) return;
+    const startAt = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.55, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(startAt); osc.stop(startAt + duration + 0.03);
+  }
+  function playAlarmPattern() { ensureAudio(); beep(880,.20,0); beep(1175,.20,.30); beep(880,.20,.60); beep(1175,.28,.90); }
+  function speakReminder() {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('Stacy, mueve el mouse.');
+    u.lang='es-ES'; u.rate=.92; u.pitch=1; u.volume=1;
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => /^es(-|_)/i.test(v.lang) && /Paulina|Mónica|Monica|Marisol|Jorge/i.test(v.name)) || voices.find(v => /^es(-|_)/i.test(v.lang));
+    if (voice) u.voice = voice;
+    window.speechSynthesis.speak(u);
+  }
+  function formatTime(ms) {
+    const totalSeconds = Math.max(0, Math.ceil(ms/1000));
+    const min = Math.floor(totalSeconds/60), sec = totalSeconds%60;
+    return `${min}:${String(sec).padStart(2,'0')}`;
+  }
+  function renderTick() {
+    if (!active || alarming || deadline === null) return;
+    const remaining = deadline - Date.now();
+    timerEl.textContent = formatTime(remaining);
+    if (remaining <= 0) triggerAlarm();
+  }
+  function startCycle() {
+    stopAlarmRepeat(); alarming=false; active=true; deadline=Date.now()+CYCLE_MS;
+    timerEl.classList.remove('alert'); timerEl.textContent='4:00'; statusEl.textContent='Próximo aviso en 4 minutos.';
+    startBtn.classList.add('hidden'); ackBtn.style.display='none';
+    clearInterval(tickInterval); tickInterval=setInterval(renderTick,250); renderTick();
+  }
+  function triggerAlarm() {
+    if (alarming) return;
+    alarming=true; deadline=null; clearInterval(tickInterval); tickInterval=null;
+    timerEl.textContent='0:00'; timerEl.classList.add('alert'); statusEl.textContent='¡MUEVE EL MOUSE!'; ackBtn.style.display='block';
+    playAlarmPattern(); setTimeout(speakReminder,500);
+    alarmRepeatInterval=setInterval(() => { playAlarmPattern(); setTimeout(speakReminder,500); },10000);
+  }
+  function stopAlarmRepeat() {
+    if (alarmRepeatInterval) { clearInterval(alarmRepeatInterval); alarmRepeatInterval=null; }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+  startBtn.addEventListener('click',() => { ensureAudio(); beep(440,.04,0); if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); startCycle(); });
+  ackBtn.addEventListener('click',() => { ensureAudio(); startCycle(); });
+  document.addEventListener('visibilitychange',() => { if (!document.hidden && active && !alarming) renderTick(); });
+})();
+</script>
+</body>
+</html>
