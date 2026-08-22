@@ -15,8 +15,8 @@
     h1 { margin:0 0 12px; font-size:clamp(28px,5vw,46px); letter-spacing:-.03em; }
     #status { margin:0 auto 22px; color:var(--muted); font-size:clamp(17px,2.5vw,22px); min-height:1.5em; }
     #timer { font-size:clamp(76px,18vw,138px); font-weight:800; line-height:.95; letter-spacing:-.06em; font-variant-numeric:tabular-nums; margin:22px 0 34px; }
-    #timer.alert { color:var(--danger); animation:pulse .7s ease-in-out infinite alternate; }
-    @keyframes pulse { from { transform:scale(1); opacity:1; } to { transform:scale(1.04); opacity:.78; } }
+    #timer.alert { color:var(--danger); animation:pulse .46s ease-in-out infinite alternate; }
+    @keyframes pulse { from { transform:scale(1); opacity:1; } to { transform:scale(1.055); opacity:.68; } }
     button { width:100%; border:0; border-radius:22px; padding:24px; color:white; background:var(--blue); font-size:clamp(23px,4vw,34px); font-weight:800; letter-spacing:.02em; cursor:pointer; touch-action:manipulation; box-shadow:0 10px 30px rgba(10,132,255,.28); }
     button:active { transform:scale(.985); background:var(--blue-pressed); }
     #ackBtn { display:none; }
@@ -31,16 +31,27 @@
     <div id="timer">4:00</div>
     <button id="startBtn">INICIAR</button>
     <button id="ackBtn">YA LO MOVÍ</button>
-    <p class="note">Mantén esta página abierta en Safari. En iPad, el primer toque es necesario para habilitar el audio y la voz.</p>
+    <p class="note">Mantén esta página abierta en Safari y el volumen del iPad alto. El primer toque es necesario para habilitar el audio y la voz.</p>
   </main>
 <script>
 (() => {
   const CYCLE_MS = 4 * 60 * 1000;
+  const ALARM_DURATION_MS = 6200;
+  const REPEAT_MS = 12000;
+
   const timerEl = document.getElementById('timer');
   const statusEl = document.getElementById('status');
   const startBtn = document.getElementById('startBtn');
   const ackBtn = document.getElementById('ackBtn');
-  let deadline = null, tickInterval = null, alarmRepeatInterval = null, audioCtx = null, active = false, alarming = false;
+
+  let deadline = null;
+  let tickInterval = null;
+  let alarmRepeatInterval = null;
+  let voiceTimeout = null;
+  let audioCtx = null;
+  let active = false;
+  let alarming = false;
+  let alarmOscillators = [];
 
   function ensureAudio() {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -48,59 +59,166 @@
     if (!audioCtx) audioCtx = new AudioContext();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   }
-  function beep(freq = 880, duration = 0.22, delay = 0) {
+
+  function scheduleAlarmBeep(startAt, freq, duration = 0.18) {
     if (!audioCtx) return;
-    const startAt = audioCtx.currentTime + delay;
-    const osc = audioCtx.createOscillator();
+
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, startAt);
+    const compressor = audioCtx.createDynamicsCompressor();
+
+    osc1.type = 'square';
+    osc2.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(freq, startAt);
+    osc2.frequency.setValueAtTime(freq / 2, startAt);
+
     gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.exponentialRampToValueAtTime(0.55, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.92, startAt + 0.012);
+    gain.gain.setValueAtTime(0.92, startAt + Math.max(0.02, duration - 0.035));
     gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
-    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(startAt); osc.stop(startAt + duration + 0.03);
+
+    compressor.threshold.setValueAtTime(-12, startAt);
+    compressor.knee.setValueAtTime(3, startAt);
+    compressor.ratio.setValueAtTime(12, startAt);
+    compressor.attack.setValueAtTime(0.003, startAt);
+    compressor.release.setValueAtTime(0.08, startAt);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(compressor);
+    compressor.connect(audioCtx.destination);
+
+    osc1.start(startAt);
+    osc2.start(startAt);
+    osc1.stop(startAt + duration + 0.025);
+    osc2.stop(startAt + duration + 0.025);
+    alarmOscillators.push(osc1, osc2);
   }
-  function playAlarmPattern() { ensureAudio(); beep(880,.20,0); beep(1175,.20,.30); beep(880,.20,.60); beep(1175,.28,.90); }
+
+  function playWakeAlarm() {
+    ensureAudio();
+    if (!audioCtx) return;
+
+    stopAlarmOscillators();
+    const base = audioCtx.currentTime + 0.03;
+    const step = 0.24;
+    const totalSteps = Math.floor((ALARM_DURATION_MS / 1000) / step);
+
+    for (let i = 0; i < totalSteps; i++) {
+      const freq = (i % 4 < 2) ? 980 : 720;
+      scheduleAlarmBeep(base + i * step, freq, 0.19);
+    }
+  }
+
+  function stopAlarmOscillators() {
+    for (const osc of alarmOscillators) {
+      try { osc.stop(); } catch (_) {}
+      try { osc.disconnect(); } catch (_) {}
+    }
+    alarmOscillators = [];
+  }
+
   function speakReminder() {
-    if (!('speechSynthesis' in window)) return;
+    if (!alarming || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('Stacy, mueve el mouse.');
-    u.lang='es-ES'; u.rate=.92; u.pitch=1; u.volume=1;
+
+    const u = new SpeechSynthesisUtterance('STACY, MUEVE EL MOUSE.');
+    u.lang = 'es-ES';
+    u.rate = 0.88;
+    u.pitch = 1.02;
+    u.volume = 1;
+
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => /^es(-|_)/i.test(v.lang) && /Paulina|Mónica|Monica|Marisol|Jorge/i.test(v.name)) || voices.find(v => /^es(-|_)/i.test(v.lang));
     if (voice) u.voice = voice;
     window.speechSynthesis.speak(u);
   }
-  function formatTime(ms) {
-    const totalSeconds = Math.max(0, Math.ceil(ms/1000));
-    const min = Math.floor(totalSeconds/60), sec = totalSeconds%60;
-    return `${min}:${String(sec).padStart(2,'0')}`;
+
+  function runAlarmSequence() {
+    if (!alarming) return;
+    playWakeAlarm();
+    clearTimeout(voiceTimeout);
+    voiceTimeout = setTimeout(() => {
+      if (alarming) speakReminder();
+    }, ALARM_DURATION_MS + 250);
   }
+
+  function formatTime(ms) {
+    const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    return `${min}:${String(sec).padStart(2, '0')}`;
+  }
+
   function renderTick() {
     if (!active || alarming || deadline === null) return;
     const remaining = deadline - Date.now();
     timerEl.textContent = formatTime(remaining);
     if (remaining <= 0) triggerAlarm();
   }
+
   function startCycle() {
-    stopAlarmRepeat(); alarming=false; active=true; deadline=Date.now()+CYCLE_MS;
-    timerEl.classList.remove('alert'); timerEl.textContent='4:00'; statusEl.textContent='Próximo aviso en 4 minutos.';
-    startBtn.classList.add('hidden'); ackBtn.style.display='none';
-    clearInterval(tickInterval); tickInterval=setInterval(renderTick,250); renderTick();
+    stopAlarm();
+    alarming = false;
+    active = true;
+    deadline = Date.now() + CYCLE_MS;
+
+    timerEl.classList.remove('alert');
+    timerEl.textContent = '4:00';
+    statusEl.textContent = 'Próximo aviso en 4 minutos.';
+    startBtn.classList.add('hidden');
+    ackBtn.style.display = 'none';
+
+    clearInterval(tickInterval);
+    tickInterval = setInterval(renderTick, 250);
+    renderTick();
   }
+
   function triggerAlarm() {
     if (alarming) return;
-    alarming=true; deadline=null; clearInterval(tickInterval); tickInterval=null;
-    timerEl.textContent='0:00'; timerEl.classList.add('alert'); statusEl.textContent='¡MUEVE EL MOUSE!'; ackBtn.style.display='block';
-    playAlarmPattern(); setTimeout(speakReminder,500);
-    alarmRepeatInterval=setInterval(() => { playAlarmPattern(); setTimeout(speakReminder,500); },10000);
+    alarming = true;
+    deadline = null;
+    clearInterval(tickInterval);
+    tickInterval = null;
+
+    timerEl.textContent = '0:00';
+    timerEl.classList.add('alert');
+    statusEl.textContent = '¡STACY, MUEVE EL MOUSE!';
+    ackBtn.style.display = 'block';
+
+    runAlarmSequence();
+    alarmRepeatInterval = setInterval(runAlarmSequence, REPEAT_MS);
   }
-  function stopAlarmRepeat() {
-    if (alarmRepeatInterval) { clearInterval(alarmRepeatInterval); alarmRepeatInterval=null; }
+
+  function stopAlarm() {
+    if (alarmRepeatInterval) {
+      clearInterval(alarmRepeatInterval);
+      alarmRepeatInterval = null;
+    }
+    if (voiceTimeout) {
+      clearTimeout(voiceTimeout);
+      voiceTimeout = null;
+    }
+    stopAlarmOscillators();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
-  startBtn.addEventListener('click',() => { ensureAudio(); beep(440,.04,0); if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); startCycle(); });
-  ackBtn.addEventListener('click',() => { ensureAudio(); startCycle(); });
-  document.addEventListener('visibilitychange',() => { if (!document.hidden && active && !alarming) renderTick(); });
+
+  startBtn.addEventListener('click', () => {
+    ensureAudio();
+    if (audioCtx) scheduleAlarmBeep(audioCtx.currentTime + 0.01, 440, 0.04);
+    if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+    startCycle();
+  });
+
+  ackBtn.addEventListener('click', () => {
+    ensureAudio();
+    startCycle();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && active && !alarming) renderTick();
+  });
 })();
 </script>
 </body>
